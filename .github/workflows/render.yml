@@ -1,0 +1,48 @@
+name: Render OrganicPaper 4K
+
+on:
+  workflow_dispatch:
+    inputs:
+      animationSpeed:
+        description: "Animation speed (0.25–4.0)"
+        required: false
+        default: "3.0"
+      orbOpacity:
+        description: "Orb opacity (0–1)"
+        required: false
+        default: "0.4"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium for Remotion
+        run: npx remotion browser ensure
+
+      - name: Render OrganicPaper
+        run: |
+          npx remotion render \
+            OrganicPaper \
+            out/OrganicPaper-4K.mp4 \
+            --width=3840 \
+            --height=2160 \
+            --props='{"animationSpeed":${{ github.event.inputs.animationSpeed }},"orbOpacity":${{ github.event.inputs.orbOpacity }}}'
+
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrganicPaper-4K
+          path: out/OrganicPaper-4K.mp4
+          retention-days: 7
