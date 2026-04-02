@@ -33,11 +33,13 @@ jobs:
 
       - name: Render OrganicPaper
         run: |
+          mkdir -p out
           npx remotion render \
             OrganicPaper \
             out/OrganicPaper-4K.mp4 \
             --width=3840 \
             --height=2160 \
+            --muted \
             --props='{"animationSpeed":${{ github.event.inputs.animationSpeed }},"orbOpacity":${{ github.event.inputs.orbOpacity }}}'
 
       - name: Upload rendered video
