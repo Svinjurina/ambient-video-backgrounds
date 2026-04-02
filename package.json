@@ -1,0 +1,25 @@
+{
+  "name": "ambient-video-backgrounds",
+  "version": "1.0.0",
+  "description": "Ambient video backgrounds built with Remotion",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.277",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.277",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.1",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.4.5"
+  },
+  "remotion": {
+    "entryPoint": "./src/index.ts"
+  }
+}
