@@ -4,11 +4,72 @@ import { BlackGoldAmbient } from "./compositions/BlackGoldAmbient";
 import { ChironBackground } from "./compositions/ChironBackground";
 import { GradientFlow } from "./compositions/GradientFlow";
 import { OrganicPaper, organicPaperSchema } from "./compositions/OrganicPaper";
+import { OrganicPaperV12, organicPaperV12Schema } from "./compositions/OrganicPaperV12";
 import { ParticleField } from "./compositions/ParticleField";
+
+// ── Moment frames for Video #12 (Venus-Pluto) ────────────────────────────────
+// Derived from _12_ENG.srt — these are the emotionally pivotal subtitle frames
+const V12_MOMENTS = [
+  1085,   // "This is not a moral question, it is a structural question."
+  3566,   // "But it is not alive."
+  3621,   // "It is preserved."
+  6213,   // "He does not want to understand you, he wants to predict you."
+  7500,   // "this need was a prison"
+  13697,  // "Can you love without the need to control?"
+  14683,  // "Eurydice disappeared forever."
+  15137,  // "I do not believe you will stay if I am not watching you."
+  24749,  // "The paradox is perfect."
+  26351,  // "Control does not kill attachment, control kills the person."
+  27445,  // "you destroyed by the very act of preserving."
+  30581,  // "A love that knows how to be alive must also know how to let go."
+];
 
 export const Root: React.FC = () => {
   return (
     <>
+      {/* ── VIDEO #12 — Venus-Pluto: amor como control ── */}
+      <Composition
+        id="OrganicPaperV12"
+        component={OrganicPaperV12}
+        schema={organicPaperV12Schema}
+        durationInFrames={31324}
+        fps={30}
+        width={3840}
+        height={2160}
+        defaultProps={{
+          grainIntensity: 1.0,
+          inkDensity: 1.0,
+          textColor: "#FFFFFF",
+          animationSpeed: 3.0,
+          orbOpacity: 0.4,
+          momentFrames: V12_MOMENTS,
+          frozenQuoteIndex: 19,
+          quotes: [
+            "Love is the child of freedom, never that of domination. — Erich Fromm",
+            "Love will not prevail in any situation where one party wants to maintain control. — bell hooks",
+            "For one person to love another: perhaps that is the most difficult thing granted us. — Rainer Maria Rilke",
+            "Love possesses not, nor would it be possessed; for love is sufficient unto love. — Kahlil Gibran",
+            "When we are incomplete, we are always searching for somebody to complete us. — Tom Robbins",
+            "Love does not claim possession, but gives freedom. — Rabindranath Tagore",
+            "Love does not dominate, it cultivates. — Johann Wolfgang von Goethe",
+            "Love is not a reaction, therefore it is free. — Jiddu Krishnamurti",
+            "Love, to begin with, is not something that means merging, yielding, uniting with another. — Rainer Maria Rilke",
+            "Love is the will to extend one's self for the purpose of nurturing another's spiritual growth. — M. Scott Peck",
+            "If our love is only a will to possess, it is not love. — Thich Nhat Hanh",
+            "In jealousy there is more of self-love than love. — François de La Rochefoucauld",
+            "Your task is not to seek for love, but merely to seek and find all the barriers within yourself that you have built against it. — Rumi",
+            "Think of love as a state of grace — not the means to anything, but the alpha and omega, an end in itself. — Gabriel García Márquez",
+            "We cannot possess one another. We can only give and hazard all we have. — Dorothy L. Sayers",
+            "There is no safe investment. To love at all is to be vulnerable. — C. S. Lewis",
+            "Let there be spaces in your togetherness, and let the winds of the heavens dance between you. — Kahlil Gibran",
+            "Jealousy is inconsolable because it cannot know the beloved. — Mason Cooley",
+            "Jealousy is the jaundice of the soul. — John Dryden",
+            "To love purely is to consent to distance; it is to adore the distance between ourselves and that which we love. — Simone Weil",
+          ],
+        }}
+      />
+
+      {/* ── VIDEO #11 — OrganicPaper (Saturn-Moon / autosabotaje) ── */}
       <Composition
         id="OrganicPaper"
         component={OrganicPaper}
@@ -21,37 +82,36 @@ export const Root: React.FC = () => {
           grainIntensity: 1.0,
           inkDensity: 1.0,
           quotes: [
-            "Self-sabotage is when we say we want something and then go about making sure it doesn't happen. — Alyce Cornyn-Selby",
-            "Human beings invent just as many ways to sabotage their lives as to improve them. — Mark Goulston",
-            "Once you have identified with some form of negativity, you do not want to let it go. — Eckhart Tolle",
-            "What is required for many of us is the courage to tolerate happiness without self-sabotage. — Nathaniel Branden",
-            "Nothing will sabotage our happiness more thoroughly than the fear that we are not enough. — Bill Crawford",
-            "Our inner beliefs trigger failure before it happens. — Marshall Goldsmith",
-            "Each of us has an inner thermostat that determines how much love and success we allow ourselves. — Gay Hendricks",
-            "But I do nothing upon myself, and yet I am my own executioner. — John Donne",
-            "Our biggest enemy is our own self-doubt. We sabotage our greatness because of our fear. — Robin Sharma",
-            "Resistance by definition is self-sabotage. — Steven Pressfield",
-            "The tragedy of too many people is that they cannot allow happiness just to be there. — Nathaniel Branden",
-            "We marry the wrong person because we cannot let ourselves be happy. — Fay Weldon",
-            "I have a tendency to sabotage everything. Fear of success, fear of failure, fear of being afraid. — Michael Bublé",
-            "The real difficulty is to overcome how you think about yourself. — Maya Angelou",
-            "Self-doubt does more to sabotage individual potential than all external limitations put together. — Brian Tracy",
-            "I sabotage myself for fear of what my bigness could do. — Alanis Morissette",
-            "Self-sabotage is the smartest thing you can do if you're sabotaging a self that is not really you. — Armand DiMele",
-            "Addiction, self-sabotage, procrastination — all ways that we withhold our full participation in life. — Charles Eisenstein",
-            "Sometimes we self-sabotage just when things seem to be going smoothly. — Maureen Brady",
-            "Doing too much is not always an act of love but of sabotage. — Judith Orloff",
-            "I'm doing everything I can to sabotage my career. It's a little thing called fear of success. — Jon Stewart",
-            "Some part of me was afraid of enjoying positive energy for any extended period of time. — Gay Hendricks",
-            "The moment you doubt whether you can fly, you cease forever to be able to do it. — J.M. Barrie",
-            "Art is a war between ourselves and the forces of self-sabotage that would stop us from doing our work. — Steven Pressfield",
-            "If your parents told you that you'll never amount to much, maybe you handicap yourself to confirm that prophecy. — Barbara Field",
-            "Procrastination is, hands down, our favorite form of self-sabotage. — Alyce Cornyn-Selby",
-            "People with a negative self-image become uncomfortable when they are close to succeeding. — Barbara Field",
-            "We want things so much that we sabotage them. — Jack White",
-            "We are all our own worst enemy. — Sigmund Freud",
-            "Self-destruction and self-sabotage are often just the start of the self-resurrection process. — Oli Anderson",
-          ],
+            "El autosabotaje es cuando decimos que queremos algo y luego nos aseguramos de que no suceda. — Alyce Cornyn-Selby",
+            "Los seres humanos inventan tantas formas de sabotear sus vidas como de mejorarlas. — Mark Goulston",
+            "Una vez que te has identificado con alguna forma de negatividad, no quieres soltarla. — Eckhart Tolle",
+            "Lo que muchos de nosotros necesitamos es el valor de tolerar la felicidad sin autosabotearnos. — Nathaniel Branden",
+            "Nada saboteará nuestra felicidad de manera más profunda que el miedo a no ser suficientes. — Bill Crawford",
+            "Nuestras creencias internas provocan el fracaso antes de que ocurra. — Marshall Goldsmith",
+            "Cada uno de nosotros tiene un termostato interior que determina cuánto amor y éxito nos permitimos. — Gay Hendricks",
+            "No hago nada contra mí mismo, y sin embargo soy mi propio verdugo. — John Donne",
+            "Nuestro mayor enemigo es nuestra propia duda. Saboteamos nuestra grandeza por miedo. — Robin Sharma",
+            "La resistencia, por definición, es autosabotaje. — Steven Pressfield",
+            "La tragedia de demasiadas personas es que no pueden permitir que la felicidad simplemente esté ahí. — Nathaniel Branden",
+            "Nos casamos con la persona equivocada porque no podemos permitirnos ser felices. — Fay Weldon",
+            "Tengo tendencia a sabotearlo todo. Miedo al éxito, miedo al fracaso, miedo a tener miedo. — Michael Bublé",
+            "La verdadera dificultad es superar la forma en que piensas sobre ti mismo. — Maya Angelou",
+            "La duda en uno mismo hace más por sabotear el potencial individual que todas las limitaciones externas juntas. — Brian Tracy",
+            "Me saboteo a mí misma por miedo a lo que mi grandeza podría hacer. — Alanis Morissette",
+            "El autosabotaje es lo más inteligente que puedes hacer si estás saboteando un yo que en realidad no eres tú. — Armand DiMele",
+            "La adicción, el autosabotaje, la procrastinación: todas son formas en que nos negamos a participar plenamente en la vida. — Charles Eisenstein",
+            "A veces nos autosaboteamos justo cuando las cosas parecen ir bien. — Maureen Brady",
+            "Hacer demasiado no siempre es un acto de amor, sino de sabotaje. — Judith Orloff",
+            "Estoy haciendo todo lo posible para sabotear mi carrera. Es algo llamado miedo al éxito. — Jon Stewart",
+            "Una parte de mí tenía miedo de disfrutar de la energía positiva durante un período prolongado. — Gay Hendricks",
+            "En el momento en que dudas si puedes volar, dejas para siempre de poder hacerlo. — J.M. Barrie",
+            "El arte es una guerra entre nosotros mismos y las fuerzas del autosabotaje que nos impedirían hacer nuestro trabajo. — Steven Pressfield",
+            "Si tus padres te dijeron que nunca llegarías a nada, quizás te limitas a ti mismo para confirmar esa profecía. — Barbara Field",
+            "La procrastinación es, sin duda, nuestra forma favorita de autosabotaje. — Alyce Cornyn-Selby",
+            "Las personas con una imagen negativa de sí mismas se sienten incómodas cuando están a punto de tener éxito. — Barbara Field",
+            "Queremos las cosas tanto que las saboteamos. — Jack White",
+            "Todos somos nuestro peor enemigo. — Sigmund Freud",
+            "La autodestrucción y el autosabotaje son con frecuencia solo el comienzo del proceso de auto-resurrección. — Oli Anderson"],
           textColor: "#FFFFFF",
           animationSpeed: 3.0,
           orbOpacity: 0.4,

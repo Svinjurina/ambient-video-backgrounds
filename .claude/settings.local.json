@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(xxd \"c:/Users/PENTAGON/ambient-video-backgrounds/src/Root.tsx\")"
+    ]
+  }
+}

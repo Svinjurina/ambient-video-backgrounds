@@ -14,13 +14,10 @@ function useLato() {
       document.head.appendChild(link);
     }
     const onLoad = () => {
-      // Explicitly wait for the specific face — fonts.ready resolves too early
-      // when the stylesheet is injected dynamically.
       document.fonts.load('italic 300 1em Lato')
         .then(() => continueRender(handle))
         .catch(() => continueRender(handle));
     };
-    // Stylesheet may already be cached and parsed
     if (link.sheet) {
       onLoad();
     } else {
@@ -30,7 +27,7 @@ function useLato() {
   }, [handle]);
 }
 
-const LOOP_FRAMES = 36000; // 1200 s × 30 fps — all osc freqs are integers → seamless
+const LOOP_FRAMES = 36000;
 const TAU = Math.PI * 2;
 
 function hash(n: number): number {
@@ -50,25 +47,38 @@ function lcm(a: number, b: number): number {
   return (a * b) / gcd(a, b);
 }
 
-// ── Ink blob definitions — slow, warm, drifting ───────────────────────────────
+// ── NEW: Moment pulse helper ──────────────────────────────────────────────────
+// Returns 0–1: peaks at 1.0 on a moment frame, decays over PULSE_DECAY frames
+const PULSE_DECAY = 45; // 1.5 seconds decay on each side
+function momentPulse(frame: number, moments: number[]): number {
+  if (!moments || moments.length === 0) return 0;
+  let closest = Infinity;
+  for (const m of moments) {
+    const d = Math.abs(frame - m);
+    if (d < closest) closest = d;
+  }
+  return Math.max(0, 1 - closest / PULSE_DECAY);
+}
+
+// ── Ink blob definitions ───────────────────────────────────────────────────────
 const INK_DEFS = Array.from({ length: 12 }, (_, i) => {
   const h = (n: number) => hash(i * 13 + n + 100);
   return {
     bx:       0.05 + h(0) * 0.90,
     by:       0.05 + h(1) * 0.90,
-    fx:       1 + Math.floor(h(2) * 3),   // 1–3: deliberately slow
+    fx:       1 + Math.floor(h(2) * 3),
     fy:       1 + Math.floor(h(3) * 3),
     px:       h(4) * TAU,
     py:       h(5) * TAU,
-    ax:       0.03 + h(6) * 0.07,         // small amplitude → gentle drift
+    ax:       0.03 + h(6) * 0.07,
     ay:       0.02 + h(7) * 0.06,
-    rx:       0.10 + h(8) * 0.22,         // blob radius fraction of MIN
+    rx:       0.10 + h(8) * 0.22,
     ry:       0.07 + h(9) * 0.16,
-    frx:      1 + Math.floor(h(10) * 3),  // shape-morph freq
+    frx:      1 + Math.floor(h(10) * 3),
     pRx:      h(11) * TAU,
     fry:      1 + Math.floor(h(12) * 3),
     pRy:      h(13) * TAU,
-    warmth:   h(14),                       // 0 = dark purple-grey, 1 = dark amber
+    warmth:   h(14),
     opacity:  0.30 + h(15) * 0.36,
     blur:     22 + h(16) * 34,
     rotFreq:  1 + Math.floor(h(17) * 3),
@@ -80,8 +90,6 @@ const INK_DEFS = Array.from({ length: 12 }, (_, i) => {
 });
 
 // ── Lissajous organic curve definitions ───────────────────────────────────────
-// Each pair [fx, fy] defines a Lissajous figure family.
-// The phase difference drifts slowly → the figure morphs continuously.
 const CURVE_PAIRS: Array<[number, number]> = [
   [1, 2], [2, 3], [3, 4], [3, 5], [4, 5], [2, 5], [5, 6],
 ];
@@ -92,16 +100,16 @@ const CURVE_DEFS = CURVE_PAIRS.map(([fx, fy], i) => {
   return {
     fx, fy, periods,
     nSamples:   Math.min(periods * 42, 380),
-    driftFreq:  1 + Math.floor(h(0) * 4),  // integer → seamless loop
+    driftFreq:  1 + Math.floor(h(0) * 4),
     driftPhase: h(1) * TAU,
-    driftAmp:   0.7 + h(2) * 1.5,          // phase swing in radians
+    driftAmp:   0.7 + h(2) * 1.5,
     phX:        h(3) * TAU,
     phY:        h(4) * TAU,
-    cx:         0.28 + h(5) * 0.44,        // centre (canvas fraction)
+    cx:         0.28 + h(5) * 0.44,
     cy:         0.22 + h(6) * 0.56,
-    ax:         0.24 + h(7) * 0.30,        // amplitude (canvas fraction)
+    ax:         0.24 + h(7) * 0.30,
     ay:         0.18 + h(8) * 0.26,
-    hue:        16 + h(9) * 32,            // warm amber–orange 16–48°
+    hue:        16 + h(9) * 32,
     sat:        22 + h(10) * 48,
     light:      28 + h(11) * 38,
     baseAlpha:  0.07 + h(12) * 0.16,
@@ -112,7 +120,6 @@ const CURVE_DEFS = CURVE_PAIRS.map(([fx, fy], i) => {
 });
 
 // ── Red accent thread definitions ─────────────────────────────────────────────
-// Higher-ratio Lissajous figures → denser, more chaotic paths
 const THREAD_PAIRS: Array<[number, number]> = [
   [3, 7], [5, 8], [4, 7], [7, 9],
 ];
@@ -139,7 +146,7 @@ const THREAD_DEFS = THREAD_PAIRS.map(([fx, fy], i) => {
   };
 });
 
-// ── Purple accent threads — 3 subtle Lissajous curves ────────────────────────
+// ── Purple accent threads ─────────────────────────────────────────────────────
 const PURPLE_THREADS = (
   [[2,5],[3,8],[5,7]] as Array<[number,number]>
 ).map(([fx, fy], i) => {
@@ -155,10 +162,9 @@ const PURPLE_THREADS = (
   };
 });
 
-// ── Glowing orbs — large soft fog-light blobs ─────────────────────────────────
+// ── Glowing orbs ──────────────────────────────────────────────────────────────
 const ORB_DEFS = Array.from({ length: 4 }, (_, i) => {
   const h = (n: number) => hash(i * 37 + n + 1200);
-  // warm amber (0) → deep crimson (1)
   const warmth = h(0);
   return {
     bcx:    0.12 + h(1) * 0.76,
@@ -169,7 +175,7 @@ const ORB_DEFS = Array.from({ length: 4 }, (_, i) => {
     py:     h(6) * TAU,
     ax:     0.04 + h(7) * 0.08,
     ay:     0.03 + h(8) * 0.07,
-    rx:     0.22 + h(9)  * 0.28,   // large — fraction of MIN
+    rx:     0.22 + h(9)  * 0.28,
     ry:     0.18 + h(10) * 0.22,
     frx:    1 + Math.floor(h(11) * 2),
     pRx:    h(12) * TAU,
@@ -180,12 +186,11 @@ const ORB_DEFS = Array.from({ length: 4 }, (_, i) => {
     rotAmp:   0.20 + h(17) * 0.35,
     pulseFreq:  1 + Math.floor(h(18) * 3),
     pulsePhase: h(19) * TAU,
-    // color: amber vs deep red
     r: Math.round(warmth > 0.5 ? lerp(110, 180, (warmth - 0.5) * 2) : lerp(60, 110, warmth * 2)),
     g: Math.round(warmth > 0.5 ? lerp(18,  30,  (warmth - 0.5) * 2) : lerp(8,  18,  warmth * 2)),
     b: Math.round(warmth > 0.5 ? lerp(4,   10,  (warmth - 0.5) * 2) : lerp(14, 4,   warmth * 2)),
-    opacity: 0.06 + h(20) * 0.07,  // very faint — fog-light effect
-    blur:    55  + h(21) * 55,      // huge blur radius
+    opacity: 0.06 + h(20) * 0.07,
+    blur:    55  + h(21) * 55,
   };
 });
 
@@ -203,7 +208,6 @@ function buildLissajousPath(
     const py = (cy + Math.sin(fy * s + phY)              * ay) * H;
     pts.push([px, py]);
   }
-  // Smooth quadratic bezier polyline through midpoints
   let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
   for (let j = 1; j < pts.length - 1; j++) {
     const mx = ((pts[j][0] + pts[j + 1][0]) / 2).toFixed(1);
@@ -218,13 +222,11 @@ function buildLissajousPath(
 const Q_FONT          = '"Lato", sans-serif';
 const Q_SIZE          = 52;
 const Q_LSPACE        = 1;
-const Q_CHAR_W        = Q_SIZE * 0.52 + Q_LSPACE;  // avg glyph width for Lato italic
+const Q_CHAR_W        = Q_SIZE * 0.52 + Q_LSPACE;
 const Q_LINE_H        = Q_SIZE * 1.60;
 const Q_CENTER_Y_FRAC = 0.50;
-const Q_MAX_W_FRAC    = 0.80;                       // max text block = 80% of frame width
+const Q_MAX_W_FRAC    = 0.80;
 
-// Word-wrap a single paragraph to a maximum character-width budget.
-// Works on the same Q_CHAR_W grid used by charToXY so pen tracking stays accurate.
 function wrapText(text: string, maxLineChars: number): string[] {
   const words  = text.split(" ");
   const lines: string[] = [];
@@ -235,7 +237,6 @@ function wrapText(text: string, maxLineChars: number): string[] {
       cur = candidate;
     } else {
       if (cur) lines.push(cur);
-      // Long single word — force it onto its own line anyway
       cur = word;
     }
   }
@@ -286,26 +287,38 @@ function getPenPos(
 // ── Quote system ──────────────────────────────────────────────────────────────
 const DEFAULT_FRAMES_PER_CHAR = 14;
 const HOLD_FRAMES             = 210;
+const HOLD_FRAMES_FROZEN      = 600;  // NEW: frozen quote stays ~20s
 const FADE_FRAMES             = 120;
 const GAP_FRAMES              = 90;
-const QUOTES_START            = 3600;  // frame 3600 = 2 min
-const SLOT_FRAMES             = 960;   // 32 s per quote at 30 fps
+const QUOTES_START            = 3600;
+const SLOT_FRAMES             = 960;
 
 interface QuoteEntry {
   text: string; startFrame: number; writeDur: number; cycleDur: number;
 }
 
-function buildQuoteSchedule(quotes: string[], framesPerChar: number): QuoteEntry[] {
-  const maxWriteDur = SLOT_FRAMES - HOLD_FRAMES - FADE_FRAMES - GAP_FRAMES; // 540 frames
+function buildQuoteSchedule(
+  quotes: string[],
+  framesPerChar: number,
+  frozenQuoteIndex?: number,  // NEW
+): QuoteEntry[] {
+  const maxWriteDur = SLOT_FRAMES - HOLD_FRAMES - FADE_FRAMES - GAP_FRAMES;
+  // If there's a frozen quote, its slot is longer → shift all subsequent quotes
+  let offset = 0;
   return quotes.map((text, qi) => {
-    const charCount = text.replace(/\n/g, "").length;
-    const writeDur  = Math.min(charCount * framesPerChar, maxWriteDur);
-    return {
+    const charCount  = text.replace(/\n/g, "").length;
+    const writeDur   = Math.min(charCount * framesPerChar, maxWriteDur);
+    const isFrozen   = qi === frozenQuoteIndex;
+    const holdFrames = isFrozen ? HOLD_FRAMES_FROZEN : HOLD_FRAMES;
+    const cycleDur   = writeDur + holdFrames + FADE_FRAMES + GAP_FRAMES;
+    const entry = {
       text,
-      startFrame: QUOTES_START + qi * SLOT_FRAMES,
+      startFrame: QUOTES_START + offset,
       writeDur,
-      cycleDur:   SLOT_FRAMES,
+      cycleDur,
     };
+    offset += cycleDur;
+    return entry;
   });
 }
 
@@ -315,15 +328,16 @@ const TRAIL_STEP         = 3;
 const TRAIL_DRAIN_FRAMES = 30;
 
 // ── QuoteLayer ────────────────────────────────────────────────────────────────
-function QuoteLayer({ frame, W, H, quotes, animationSpeed, textColor }: {
+function QuoteLayer({ frame, W, H, quotes, animationSpeed, textColor, frozenQuoteIndex }: {
   frame: number; W: number; H: number;
   quotes: string[]; animationSpeed: number; textColor: string;
+  frozenQuoteIndex?: number;  // NEW
 }) {
   const framesPerChar = Math.max(1, Math.round(DEFAULT_FRAMES_PER_CHAR / animationSpeed));
   const schedule = useMemo(
-    () => buildQuoteSchedule(quotes, framesPerChar),
+    () => buildQuoteSchedule(quotes, framesPerChar, frozenQuoteIndex),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [quotes.join("|||"), framesPerChar],
+    [quotes.join("|||"), framesPerChar, frozenQuoteIndex],
   );
   let entry: QuoteEntry | null = null;
   for (const e of schedule) {
@@ -338,9 +352,30 @@ function QuoteLayer({ frame, W, H, quotes, animationSpeed, textColor }: {
   const writeProgress = Math.min(localFrame / entry.writeDur, 1.0);
   const isWriting     = writeProgress < 0.9999;
   const penCharProg   = writeProgress * totalChars;
-  const fadeStart     = entry.writeDur + HOLD_FRAMES;
+
+  // Determine hold duration for this specific quote
+  const isFrozen      = quotes.indexOf(entry.text) === frozenQuoteIndex;
+  const holdDur       = isFrozen ? HOLD_FRAMES_FROZEN : HOLD_FRAMES;
+
+  const fadeStart     = entry.writeDur + holdDur;
   if (localFrame >= fadeStart + FADE_FRAMES) return null;
-  const textAlpha = localFrame < fadeStart ? 1.0 : Math.max(0, 1 - (localFrame - fadeStart) / FADE_FRAMES);
+
+  // NEW: frozen quote — fade IN slowly at start of hold
+  let textAlpha: number;
+  if (localFrame < entry.writeDur) {
+    textAlpha = 1.0;
+  } else if (localFrame < fadeStart) {
+    if (isFrozen) {
+      // Gentle pulse during hold: 1.0 → 0.85 → 1.0
+      const holdProgress = (localFrame - entry.writeDur) / holdDur;
+      textAlpha = 0.85 + 0.15 * Math.cos(holdProgress * TAU);
+    } else {
+      textAlpha = 1.0;
+    }
+  } else {
+    textAlpha = Math.max(0, 1 - (localFrame - fadeStart) / FADE_FRAMES);
+  }
+
   const centerY   = H * Q_CENTER_Y_FRAC;
   const penPos    = getPenPos(localFrame, entry.writeDur, lines, W, H)!;
 
@@ -452,24 +487,34 @@ function QuoteLayer({ frame, W, H, quotes, animationSpeed, textColor }: {
 
 // ── Schema + Types ────────────────────────────────────────────────────────────
 export const organicPaperSchema = z.object({
-  grainIntensity: z.number().min(0.5).max(2.0),
-  inkDensity:     z.number().min(0.5).max(2.0),
-  quotes:         z.array(z.string()),
-  textColor:      z.string(),
-  animationSpeed: z.number().min(0.25).max(4.0),
-  orbOpacity:     z.number().min(0).max(1),
+  grainIntensity:   z.number().min(0.5).max(2.0),
+  inkDensity:       z.number().min(0.5).max(2.0),
+  quotes:           z.array(z.string()),
+  textColor:        z.string(),
+  animationSpeed:   z.number().min(0.25).max(4.0),
+  orbOpacity:       z.number().min(0).max(1),
+  // NEW optional props — safe defaults keep old videos unchanged
+  momentFrames:     z.array(z.number()).optional(),
+  frozenQuoteIndex: z.number().optional(),
 });
 
 type Props = z.infer<typeof organicPaperSchema>;
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quotes, textColor, animationSpeed, orbOpacity }) => {
+export const OrganicPaper: React.FC<Props> = ({
+  grainIntensity, inkDensity, quotes, textColor, animationSpeed, orbOpacity,
+  momentFrames = [],      // NEW — defaults to empty (no pulses)
+  frozenQuoteIndex,       // NEW — defaults to undefined (no frozen quote)
+}) => {
   useLato();
   const frame = useCurrentFrame();
   const { width: W, height: H } = useVideoConfig();
 
   const t   = frame / LOOP_FRAMES;
   const MIN = Math.min(W, H);
+
+  // NEW: moment pulse value for this frame (0–1)
+  const mPulse = momentPulse(frame, momentFrames);
 
   const grainSeed    = frame % 512;
   const breathe1     = osc(t, 9,   0.50) * 0.5 + 0.5;
@@ -479,10 +524,18 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
   const fiberAngle1  = (1.8  + osc(t, 6, 0.0) * 1.1).toFixed(2);
   const fiberAngle2  = (89.4 + osc(t, 9, 1.8) * 0.8).toFixed(2);
 
-  return (
-    <div style={{ position: "absolute", inset: 0, background: "#1c0d05", overflow: "hidden" }}>
+  // NEW: paper background color shifts slightly warmer/brighter at moments
+  const bgR = Math.round(28  + mPulse * 18);  // 28 → 46
+  const bgG = Math.round(13  + mPulse * 8);   // 13 → 21
+  const bgB = Math.round(5   + mPulse * 4);   // 5  → 9
 
-      {/* ── Subtle paper fiber — very faint, just adds texture ── */}
+  // NEW: ink density gets a brief boost at moments (+40% max)
+  const inkDensityLive = inkDensity * (1 + mPulse * 0.40);
+
+  return (
+    <div style={{ position: "absolute", inset: 0, background: `rgb(${bgR},${bgG},${bgB})`, overflow: "hidden" }}>
+
+      {/* ── Paper fiber ── */}
       <div style={{
         position: "absolute", inset: 0,
         background: `repeating-linear-gradient(${fiberAngle1}deg, transparent 0px, rgba(55,28,8,0.28) 1px, transparent 2px, rgba(38,18,5,0.14) 5px, transparent 6px)`,
@@ -493,7 +546,7 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
         opacity: 0.7,
       }} />
 
-      {/* ── Glowing orbs — large soft fog-light, deepest layer ── */}
+      {/* ── Glowing orbs ── */}
       {ORB_DEFS.map((b, i) => {
         const x   = (b.bcx + osc(t, b.fx, b.px) * b.ax) * W;
         const y   = (b.bcy + osc(t, b.fy, b.py) * b.ay) * H;
@@ -516,7 +569,7 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
         );
       })}
 
-      {/* ── Warm ink blobs — slow organic dark masses ── */}
+      {/* ── Warm ink blobs — opacity boosted at moments ── */}
       {INK_DEFS.map((b, i) => {
         const x   = (b.bx + osc(t, b.fx, b.px) * b.ax) * W;
         const y   = (b.by + osc(t, b.fy, b.py) * b.ay) * H;
@@ -524,12 +577,12 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
         const ry  = (b.ry + osc(t, b.fry, b.pRy) * 0.014) * MIN;
         const rot = (osc(t, b.rotFreq, b.rotPhase) * b.rotAmp).toFixed(4);
         const w   = b.warmth;
-        // warm blobs: dark amber; cold blobs: dark purple-grey
         const r1  = Math.round(lerp(22, 72, w));
         const g1  = Math.round(lerp(8,  26, w));
         const bv  = Math.round(lerp(20, 6,  w));
-        const op  = (b.opacity * inkDensity * (0.55 + breathe2 * 0.45)).toFixed(3);
-        const op2 = (b.opacity * inkDensity * 0.30).toFixed(3);
+        // inkDensityLive includes moment boost
+        const op  = (b.opacity * inkDensityLive * (0.55 + breathe2 * 0.45)).toFixed(3);
+        const op2 = (b.opacity * inkDensityLive * 0.30).toFixed(3);
         return (
           <div key={`ink-${i}`} style={{
             position: "absolute",
@@ -543,7 +596,7 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
         );
       })}
 
-      {/* ── SVG layer: grain + Lissajous curves + red threads ── */}
+      {/* ── SVG layer ── */}
       <svg style={{ position: "absolute", inset: 0, overflow: "visible" }} width={W} height={H}>
         <defs>
           <filter id="op-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
@@ -555,11 +608,9 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
               <feFuncB type="linear" slope="2.6" intercept="-0.55" />
             </feComponentTransfer>
           </filter>
-          {/* Soft glow behind the organic curves */}
           <filter id="curve-glow" x="-15%" y="-15%" width="130%" height="130%">
             <feGaussianBlur stdDeviation="5" />
           </filter>
-
         </defs>
 
         {/* Film grain */}
@@ -570,7 +621,7 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
           style={{ mixBlendMode: "overlay" }}
         />
 
-        {/* Organic Lissajous curves — blurred glow pass */}
+        {/* Organic Lissajous curves — glow pass */}
         <g filter="url(#curve-glow)">
           {CURVE_DEFS.map((c, i) => {
             const phaseShift = osc(t, c.driftFreq, c.driftPhase) * c.driftAmp;
@@ -609,12 +660,11 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
         })}
       </svg>
 
-      {/* ── Burnt vignette — main radial crush ── */}
+      {/* ── Burnt vignette ── */}
       <div style={{
         position: "absolute", inset: 0,
         background: `radial-gradient(ellipse 72% 74% at 50% 50%, transparent 0%, rgba(5,2,1,0.18) 50%, rgba(3,1,0,0.66) 75%, rgba(1,0,0,0.95) 100%)`,
       }} />
-      {/* Corner burns */}
       <div style={{
         position: "absolute", inset: 0,
         background: `
@@ -624,7 +674,6 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
           radial-gradient(ellipse 38% 38% at 100% 100%, rgba(2,1,0,0.92) 0%, transparent 100%)
         `,
       }} />
-      {/* Warm brown edge tint */}
       <div style={{
         position: "absolute", inset: 0,
         background: `radial-gradient(ellipse 58% 60% at 50% 50%, transparent 0%, rgba(12,4,1,0.50) 100%)`,
@@ -639,7 +688,11 @@ export const OrganicPaper: React.FC<Props> = ({ grainIntensity, inkDensity, quot
       }} />
 
       {/* ── Snake writing animation ── */}
-      <QuoteLayer frame={frame} W={W} H={H} quotes={quotes} animationSpeed={animationSpeed} textColor={textColor} />
+      <QuoteLayer
+        frame={frame} W={W} H={H}
+        quotes={quotes} animationSpeed={animationSpeed} textColor={textColor}
+        frozenQuoteIndex={frozenQuoteIndex}
+      />
 
     </div>
   );
