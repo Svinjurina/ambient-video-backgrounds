@@ -175,11 +175,12 @@ const NAME_VISIBLE  = 150; // 5 seconds
 const NAME_FADE_IN  = 30;  // 1 second fade in
 const NAME_FADE_OUT = 40;  // ~1.3 second fade out
 
-function NameOverlays({ frame, W, H }: { frame: number; W: number; H: number }) {
+function NameOverlays({ frame, W, H, events }: { frame: number; W: number; H: number; events?: typeof NAME_EVENTS }) {
   const fontSize = W * 0.028;
   const elements: React.ReactElement[] = [];
+  const activeEvents = events ?? NAME_EVENTS;
 
-  for (const evt of NAME_EVENTS) {
+  for (const evt of activeEvents) {
     const local = frame - evt.showFrame;
     if (local < 0 || local >= NAME_VISIBLE + NAME_FADE_OUT) continue;
 
@@ -618,6 +619,8 @@ export const organicPaperV12Schema = z.object({
   orbOpacity:       z.number().min(0).max(1),
   momentFrames:     z.array(z.number()).optional(),
   frozenQuoteIndex: z.number().optional(),
+  openingText:      z.string().optional(),
+  nameEvents:       z.array(z.object({ name: z.string(), showFrame: z.number(), x: z.number(), y: z.number() })).optional(),
 });
 
 type Props = z.infer<typeof organicPaperV12Schema>;
@@ -627,6 +630,8 @@ export const OrganicPaperV12: React.FC<Props> = ({
   grainIntensity, inkDensity, quotes, textColor, animationSpeed, orbOpacity,
   momentFrames = [],
   frozenQuoteIndex,
+  openingText = "You think you love.",
+  nameEvents,
 }) => {
   useFonts();
   const frame = useCurrentFrame();
@@ -712,7 +717,7 @@ export const OrganicPaperV12: React.FC<Props> = ({
               color: "rgba(220, 210, 210, 0.92)",
               textAlign: "center",
             }}>
-              You think you love.
+              {openingText}
             </div>
           </div>
         );
@@ -842,42 +847,27 @@ export const OrganicPaperV12: React.FC<Props> = ({
         mixBlendMode: "screen",
       }} />
 
-      {/* ── Moment pulse — organic colored blooms ── */}
-      {mPulse > 0.01 && (
-        <svg style={{ position: "absolute", inset: 0, pointerEvents: "none", mixBlendMode: "screen" } as React.CSSProperties} width={W} height={H}>
-          <defs>
-            {[
-              { r: 255, g: 40, b: 60  },
-              { r: 40,  g: 60, b: 255 },
-              { r: 40,  g: 200, b: 60  },
-              { r: 180, g: 40, b: 255 },
-            ].map((c, i) => {
-              const op = Math.min(0.80, mPulse * (0.85 + hash(i * 7 + 99) * 0.15)).toFixed(3);
-              return (
-                <radialGradient key={i} id={`mp-rg-${i}`} cx="50%" cy="50%" r="50%">
-                  <stop offset="0%"   stopColor={`rgb(${c.r},${c.g},${c.b})`} stopOpacity={op} />
-                  <stop offset="100%" stopColor={`rgb(${c.r},${c.g},${c.b})`} stopOpacity="0" />
-                </radialGradient>
-              );
-            })}
-          </defs>
-          {[
-            { cx: 0.28, cy: 0.42, rx: 0.55, ry: 0.55 },
-            { cx: 0.75, cy: 0.55, rx: 0.50, ry: 0.50 },
-            { cx: 0.12, cy: 0.72, rx: 0.45, ry: 0.45 },
-            { cx: 0.60, cy: 0.22, rx: 0.50, ry: 0.50 },
-          ].map((blob, i) => (
-            <ellipse key={i}
-              cx={blob.cx * W} cy={blob.cy * H}
-              rx={blob.rx * W} ry={blob.ry * H}
-              fill={`url(#mp-rg-${i})`}
-            />
-          ))}
-        </svg>
-      )}
+      {/* ── Moment pulse — screen blend, bright saturated colors ── */}
+      {mPulse > 0.01 && [
+        { x: 0.28, y: 0.42, r: `255,20,40`   },
+        { x: 0.75, y: 0.55, r: `20,40,255`   },
+        { x: 0.12, y: 0.72, r: `20,180,40`   },
+        { x: 0.60, y: 0.22, r: `180,20,255`  },
+      ].map((b, i) => {
+        const op = Math.min(0.75, mPulse * (0.80 + hash(i * 7 + 99) * 0.20));
+        return (
+          <div key={`mp-${i}`} style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            mixBlendMode: "screen",
+            background: `radial-gradient(ellipse 55% 50% at ${b.x * 100}% ${b.y * 100}%, rgba(${b.r},${op.toFixed(3)}) 0%, rgba(${b.r},0) 100%)`,
+          } as React.CSSProperties} />
+        );
+      })}
 
       {/* ── Name overlays ── */}
-      <NameOverlays frame={frame} W={W} H={H} />
+      <NameOverlays frame={frame} W={W} H={H} events={nameEvents} />
 
       {/* ── Diamond meteor showers ── */}
       <DiamondShowers frame={frame} W={W} H={H} />

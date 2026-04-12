@@ -69,6 +69,75 @@ export const Root: React.FC = () => {
         }}
       />
 
+
+      {/* ── VIDEO #12 ES — Venus-Pluto: El amor como control ── */}
+      <Composition
+        id="OrganicPaperV12ES"
+        component={OrganicPaperV12}
+        schema={organicPaperV12Schema}
+        durationInFrames={31909}
+        fps={30}
+        width={3840}
+        height={2160}
+        defaultProps={{
+          grainIntensity: 1.0,
+          inkDensity: 1.0,
+          textColor: "#FFFFFF",
+          animationSpeed: 3.0,
+          orbOpacity: 0.4,
+          openingText: "Crees que amas.",
+          frozenQuoteIndex: 19,
+          nameEvents: [
+            { name: "Camille Claudel", showFrame: 7869, x: 0.60, y: 0.10 },
+            { name: "Rodin",           showFrame: 8169, x: 0.05, y: 0.30 },
+            { name: "David Buss",      showFrame: 9827, x: 0.70, y: 0.72 },
+            { name: "Orfeo",           showFrame: 12143, x: 0.06, y: 0.09 },
+            { name: "Hades",           showFrame: 12579, x: 0.74, y: 0.26 },
+            { name: "Eurídice",        showFrame: 12750, x: 0.05, y: 0.68 },
+            { name: "Marcel Proust",   showFrame: 18023, x: 0.62, y: 0.12 },
+            { name: "Pablo Picasso",   showFrame: 22657, x: 0.04, y: 0.28 },
+            { name: "Dora Maar",       showFrame: 22747, x: 0.72, y: 0.65 },
+            { name: "John Gottman",    showFrame: 24014, x: 0.06, y: 0.75 },
+          ],
+          momentFrames: [
+            1050,   // "Esta no es una pregunta moral."
+            3566,   // "Pero no está viva."
+            3643,   // "Está preservado."
+            6174,   // "No quiere entenderte."
+            7539,   // "esa necesidad era una prisión"
+            13773,  // "¿Puedes amar sin necesidad de controlar?"
+            14728,  // "Eurídice desapareció para siempre."
+            15357,  // "estoy mirando."
+            25385,  // "La paradoja es perfecta."
+            27042,  // "El control mata a la persona."
+            28113,  // "Lo que quisiste preservar, lo destruiste..."
+            26859,  // "soltarías?"
+          ],
+          quotes: [
+            "El amor es hijo de la libertad, nunca de la dominación. — Erich Fromm",
+            "El amor no puede prevalecer en ninguna situación en la que una de las partes quiera mantener el control. — bell hooks",
+            "Que una persona ame a otra: quizás sea eso lo más difícil que se nos ha concedido. — Rainer Maria Rilke",
+            "El amor no posee, ni desea ser poseído; porque el amor se basta a sí mismo. — Kahlil Gibran",
+            "Cuando somos incompletos, siempre estamos buscando a alguien que nos complete. — Tom Robbins",
+            "El amor no reclama posesión, sino que da libertad. — Rabindranath Tagore",
+            "El amor no domina, cultiva. — Johann Wolfgang von Goethe",
+            "El amor no es una reacción, por eso es libre. — Jiddu Krishnamurti",
+            "El amor, para empezar, no es algo que signifique fusionarse, rendirse, unirse con otro. — Rainer Maria Rilke",
+            "El amor es la voluntad de extenderse a uno mismo con el propósito de nutrir el crecimiento espiritual del otro. — M. Scott Peck",
+            "Si nuestro amor es solo una voluntad de poseer, no es amor. — Thich Nhat Hanh",
+            "En los celos hay más amor propio que amor. — François de La Rochefoucauld",
+            "Tu tarea no es buscar el amor, sino simplemente buscar y encontrar todas las barreras que has construido dentro de ti mismo contra él. — Rumi",
+            "Piensa en el amor como un estado de gracia — no como un medio para algo, sino como el alfa y la omega, un fin en sí mismo. — Gabriel García Márquez",
+            "No podemos poseernos los unos a los otros. Solo podemos dar y arriesgar todo lo que tenemos. — Dorothy L. Sayers",
+            "No hay inversión segura. Amar en absoluto es ser vulnerable. — C. S. Lewis",
+            "Que haya espacios en vuestra unión, y que los vientos del cielo dancen entre vosotros. — Kahlil Gibran",
+            "Los celos son inconsolables porque no pueden conocer al ser amado. — Mason Cooley",
+            "Los celos son la ictericia del alma. — John Dryden",
+            "Amar puramente es consentir la distancia; es adorar la distancia entre nosotros y aquello que amamos. — Simone Weil",
+          ],
+        }}
+      />
+
       {/* ── VIDEO #11 — OrganicPaper (Saturn-Moon / autosabotaje) ── */}
       <Composition
         id="OrganicPaper"
